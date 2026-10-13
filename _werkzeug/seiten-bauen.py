@@ -16,6 +16,13 @@ BILDER  = json.loads((WURZEL/"bilder"/"verzeichnis.json").read_text())
 NOINDEX = True          # vor dem Livegang auf False, siehe UEBERGABE.md
 DOMAIN  = "https://www.bruecknerarchitekten.com"
 
+# Die Fehlerseite wird aus jeder Tiefe ausgeliefert und braucht deshalb absolute
+# Pfade. Absolut heisst "ab der Wurzel der Domain" — GitHub Pages liefert aber
+# in einem Unterordner aus. BASIS schiebt die Pfade entsprechend.
+#   GitHub Pages:            "/Architektur-B-ro"
+#   Vercel oder eigene Domain: ""   (dort ist die Seite schon ganz oben)
+BASIS = "/Architektur-B-ro"
+
 # ---------------------------------------------------------------- Seitenplan
 # (Quelle in inhalt.json, Zieladresse, Menuetitel, Art)
 HAUPT = [
@@ -633,18 +640,18 @@ def main():
     # absolute Pfade, sonst brechen die Verweise (bekannte Falle).
     fehler_titel = zeilen("Seite nicht\ngefunden")
     html = (kopf("Seite nicht gefunden", "Diese Seite gibt es nicht.", "404", 0)
-            .replace('href="./', 'href="/').replace('"./stil.css"', '"/stil.css"')
-            .replace('href="./fonts/', 'href="/fonts/')
+            .replace('href="./', f'href="{BASIS}/').replace('"./stil.css"', f'"{BASIS}/stil.css"')
+            .replace('href="./fonts/', f'href="{BASIS}/fonts/')
             + f"""
   <section class="hero hero--klein">
     <div class="hero__schleier"></div>
     <div class="bahn hero__innen">
       <h1>{fehler_titel}</h1>
       <div class="hero__unter" data-auf><p>Die Adresse existiert nicht oder nicht mehr.</p>
-      <a class="knopf" href="/"><span>Zur Startseite</span></a></div>
+      <a class="knopf" href="{BASIS}/"><span>Zur Startseite</span></a></div>
     </div>
   </section>"""
-            + fuss(0).replace('href="./', 'href="/'))
+            + fuss(0).replace('href="./', f'href="{BASIS}/'))
     p = WURZEL/"404.html"; p.write_text(html); gebaut.append((p, len(html)))
 
     (WURZEL/"robots.txt").write_text(
