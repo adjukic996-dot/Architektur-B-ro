@@ -1,0 +1,40 @@
+{
+ "_hinweis": "Bündelung der langen Themenseiten zu Kapiteln für die Kapitelspur. Die Zahlen sind die laufenden Nummern der Überschriften aus inhalt.json. Änderbar ohne Eingriff ins HTML — danach seiten-bauen.py erneut laufen lassen.",
+
+ "generalplanung": [
+  {"titel": "Der Ansatz",          "abschnitte": [2, 3, 4]},
+  {"titel": "KI-Potenzialanalyse", "abschnitte": [5, 7]},
+  {"titel": "Warum Brückner",      "abschnitte": [6, 8, 9, 11, 12, 13]},
+  {"titel": "Referenzen",          "abschnitte": [10]}
+ ],
+
+ "modulares-bauen-architektur-revolutioniert": [
+  {"titel": "Was Modulbau kann", "abschnitte": [2, 3, 4, 11]},
+  {"titel": "Unsere Partner",    "abschnitte": [5, 6, 7, 8, 9]},
+  {"titel": "Zukunft und KI",    "abschnitte": [10, 12, 13, 15, 16]},
+  {"titel": "Für wen, und warum wir", "abschnitte": [14, 17, 18, 19, 20, 21]}
+ ],
+
+ "leistungen": [
+  {"titel": "Architektur und Entwurf",  "abschnitte": [2, 3, 4, 5]},
+  {"titel": "Wie wir planen",           "abschnitte": [6, 7, 9, 10, 11]},
+  {"titel": "Nachhaltigkeit und Technik","abschnitte": [8, 12, 13, 14]}
+ ],
+
+ "bauen-im-bestand": [
+  {"titel": "Warum Bestand",    "abschnitte": [2, 3, 4]},
+  {"titel": "Wie wir sanieren", "abschnitte": [5, 6]},
+  {"titel": "Unser Team",       "abschnitte": [7, 8, 9]}
+ ],
+
+ "esg": [
+  {"titel": "Umwelt, Soziales, Führung", "abschnitte": [2, 3]},
+  {"titel": "Architektur und ESG",       "abschnitte": [4, 5, 6]}
+ ],
+
+ "von-der-kiste-zur-piazza-fachmarktzentren-neu-gedacht": [
+  {"titel": "Die Idee",          "abschnitte": [1, 2]},
+  {"titel": "Was sie verbindet", "abschnitte": [3, 4, 5]},
+  {"titel": "Der soziale Faktor","abschnitte": [6, 7]}
+ ]
+}

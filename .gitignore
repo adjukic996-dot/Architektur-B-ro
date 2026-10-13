@@ -1,0 +1,12 @@
+# Rohaufnahme der bestehenden Seite — 248 MB. Beleg fuer den Brief,
+# nicht Teil der Website.
+_aufnahme/
+
+# Interne Unterlagen: Einschaetzungen zum Kunden und offene Rechtsrisiken.
+# Das Repo ist oeffentlich — diese Dateien gehoeren nicht hinein.
+BRIEF.md
+DESIGN.md
+UEBERGABE.md
+offene-bildtexte.md
+
+.DS_Store
