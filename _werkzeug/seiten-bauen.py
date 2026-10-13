@@ -42,6 +42,18 @@ MENUE = [(z, t) for _, z, t, _ in HAUPT if z != ""]
 PROJEKTE = sorted(k for k in INHALT
                   if k.startswith("beitraege__") and k != "beitraege__referenzen")
 
+# Die sechs auf der Startseite. Die ersten vier hebt Brueckner im eigenen Menue
+# hervor, die beiden letzten stehen in ihrer Projektliste weit oben. Also ihre
+# Auswahl, nicht meine. Reihenfolge = Reihenfolge in der Collage.
+WERKSCHAU = [
+    "beitraege__denisstrasse-lichthofe",                                   # Denisstrasse Muenchen
+    "beitraege__neubau-buerogebaeude-mit-parametrisch-entwickelter-fassade", # TUEV SUED Muenchen
+    "beitraege__kathrein-werksviertel-in-rosenheim",
+    "beitraege__meine-volksbank-raiffeisenbank-in-rosenheim",
+    "beitraege__rems-waiblingen",
+    "beitraege__shine-on-oberaudorf",
+]
+
 # ------------------------------------------------------------------ Werkzeug
 def e(s):
     return H.escape(str(s), quote=False)
@@ -96,6 +108,11 @@ def bild(url, tiefe, alt="", klasse="rahmen", lazy=True, sizes="100vw", herkunft
     innen = (f'<img src="{P}bilder/{gross["datei"]}" srcset="{satz}" sizes="{sizes}" '
              f'width="{gross["b"]}" height="{gross["h"]}" alt="{e(alt)}"{laden}>')
     return f'<figure class="{klasse}" style="margin:0">{innen}</figure>' if klasse else innen
+
+def uebergang(slug):
+    """Name fuer die View-Transition. Muss auf beiden Seiten identisch sein und
+    ein gueltiger CSS-Bezeichner — darf also nicht mit einer Ziffer beginnen."""
+    return "p-" + re.sub(r"[^a-z0-9-]", "-", slug.lower())
 
 def erstes_bild(bloecke):
     for b in bloecke:
@@ -298,11 +315,12 @@ def fuss(tiefe):
 """
 
 # ------------------------------------------------------------------ Seitenarten
-def hero(titel, text, bildurl, tiefe, klein=False):
+def hero(titel, text, bildurl, tiefe, klein=False, vt=""):
     k = " hero--klein" if klein else ""
     b = ""
     if bildurl:
-        b = (f'<div class="hero__bild" data-parallaxe="0.18">'
+        name = f' style="view-transition-name:{vt}"' if vt else ""
+        b = (f'<div class="hero__bild" data-parallaxe="0.18"{name}>'
              f'{bild(bildurl, tiefe, "", klasse="", lazy=False)}</div>')
     unter = f'<div class="hero__unter" data-auf style="--verzug:2"><p>{e(text)}</p></div>' if text else ""
     return f"""
@@ -410,7 +428,9 @@ def projekt_bauen(quelle, tiefe):
     seite = INHALT[quelle]; bl = seite["bloecke"]
     h1 = next((b["text"] for b in bl if b["art"] == "ueberschrift"), seite["titel"])
     aufm = erstes_bild(bl)
-    aus = [hero(h1, seite.get("beschreibung",""), aufm, tiefe, klein=True)]
+    # Derselbe Name wie auf der Startseite -> das Bild wandert beim Klick mit.
+    vt = uebergang(quelle.replace("beitraege__", ""))
+    aus = [hero(h1, seite.get("beschreibung",""), aufm, tiefe, klein=True, vt=vt)]
     inner, gesehen = [], {aufm}
     for b in bl:
         if b["art"] == "ueberschrift" and b["text"] != h1:
@@ -458,49 +478,93 @@ def projektliste_bauen(tiefe):
 {schlussband(tiefe)}"""
 
 def start_bauen(tiefe):
+    """Aufbau nach Vorbild exoape.com: Vollbild-Aufmacher mit kleinem Vorspann
+    und grossem Wortstapel, danach die Projekte als versetzte Collage."""
     s = INHALT["startseite"]; bl = s["bloecke"]
     aufm = erstes_bild(bl)
-    h1 = "Sehnsuchtsorte schaffen."
-    aus = [hero(h1, "", aufm, tiefe)]
-    haltung = next((b["text"] for b in bl if b["art"]=="text" and len(b["text"])>200), "")
-    erster = re.split(r"\n\s*\n", haltung)[0] if haltung else ""
-    haltung_html = absaetze(erster)
+
+    # Vorspann: der erste laengere Satz der bestehenden Seite, gekuerzt.
+    haltung = next((b["text"] for b in bl if b["art"] == "text" and len(b["text"]) > 200), "")
+    vorspann = kuerzen(re.split(r"\n\s*\n", haltung)[0] if haltung else "", 190)
+
+    wortstapel = zeilen("Sehnsuchtsorte\nschaffen.")
+    bildteil = ""
+    if aufm:
+        bildteil = (f'<div class="hero__bild" data-parallaxe="0.14">'
+                    f'{bild(aufm, tiefe, "", klasse="", lazy=False, sizes="100vw")}</div>')
+
+    aus = [f"""
+  <section class="start-hero">
+    {bildteil}
+    <div class="start-hero__tuch"></div>
+    <div class="bahn start-hero__innen">
+      <p class="start-hero__vorspann" data-auf>{e(vorspann)}</p>
+      <h1>{wortstapel}</h1>
+    </div>
+    <span class="start-hero__nachweis">Brückner Architekten</span>
+  </section>"""]
+
+    # --- Werkschau: sechs Projekte, ungleich gross und eingerueckt ---------
+    plaetze = ["a", "b", "c", "d", "e", "f"]
+    karten = []
+    gewaehlt = []
+    for k in WERKSCHAU:
+        if k not in INHALT:
+            raise SystemExit(f"ABBRUCH: WERKSCHAU nennt '{k}' — gibt es nicht in inhalt.json")
+        if not erstes_bild(INHALT[k]["bloecke"]):
+            raise SystemExit(f"ABBRUCH: '{k}' hat kein Bild und kann nicht in die Werkschau")
+        gewaehlt.append(k)
+    for i, k in enumerate(gewaehlt):
+        pr = INHALT[k]; slug = k.replace("beitraege__", "")
+        u = erstes_bild(pr["bloecke"])
+        titel = pr["titel"]
+        # Ort aus dem Titel loesen, wenn er mit Komma angehaengt ist
+        teile = [x.strip() for x in titel.split(",")]
+        name = teile[0]
+        ort = teile[-1] if len(teile) > 1 else ""
+        vt = uebergang(slug)
+        karten.append(f"""
+    <a class="wp wp--{plaetze[i]}" href="{pfad(tiefe)}projekte/{slug}/" data-auf>
+      <div class="wp__bild" style="view-transition-name:{vt}">
+        {bild(u, tiefe, titel, klasse="", sizes="(min-width:54rem) 48vw, 100vw")}
+      </div>
+      <div class="wp__text">
+        <h3>{e(name)}</h3>
+        {f'<span class="wp__ort">{e(ort)}</span>' if ort else ''}
+      </div>
+    </a>""")
+
     aus.append(f"""
-  <section class="bahn">
-    <div class="abs-text" data-auf style="max-width:40ch;font-size:clamp(1.25rem,2.6vw,1.75rem);
-         line-height:1.3;font-family:var(--anzeige)">{haltung_html}</div>
-  </section>""")
-    # Themeneinstiege als große Reihen
+  <div class="bahn">
+    <div class="marke-zeile" data-auf>
+      <h2>Ausgewählte Projekte</h2>
+      <span>{len(PROJEKTE)} Arbeiten</span>
+    </div>
+    <div class="werkschau">{"".join(karten)}</div>
+    <p style="padding-bottom:var(--s6)" data-auf>
+      <a class="knopf" href="{pfad(tiefe)}projekte/"><span>Alle Projekte</span></a></p>
+  </div>""")
+
+    # --- Themeneinstiege --------------------------------------------------
+    themen = [(q, z, tt) for q, z, tt, art in HAUPT if art == "thema"]
     reihen = []
-    themen = [(q, z, t) for q, z, t, art in HAUPT if art == "thema"]
-    for i, (q, z, t) in enumerate(themen, 1):
+    for i, (q, z, tt) in enumerate(themen, 1):
         txt = kuerzen(INHALT[q].get("beschreibung", ""), 110)
         reihen.append(f"""
       <a class="reihe" href="{pfad(tiefe)}{z}/" data-auf>
         <span class="reihe__nr">{i:02d}</span>
-        <h3>{e(t)}</h3>
+        <h3>{e(tt)}</h3>
         <span class="reihe__text">{e(txt)}</span>
         <span class="reihe__pfeil">→</span>
       </a>""")
-    aus.append(f'<section class="bahn"><h2 class="kennung" data-auf>Themen</h2>{"".join(reihen)}</section>')
-    # Ausgewählte Projekte
-    karten = []
-    for i, k in enumerate(PROJEKTE[:6]):
-        p = INHALT[k]; slug = k.replace("beitraege__","")
-        u = erstes_bild(p["bloecke"])
-        if not u: continue
-        karten.append(f"""
-      <a class="karte" href="{pfad(tiefe)}projekte/{slug}/" data-auf style="--verzug:{i%3}">
-        {bild(u, tiefe, p["titel"], sizes="(min-width:68rem) 33vw, 100vw")}
-        <h3>{e(p["titel"])}</h3>
-      </a>""")
     aus.append(f"""
   <section class="bahn">
-    <h2 class="kennung" data-auf>Ausgewählte Projekte</h2>
-    <div class="raster">{"".join(karten)}</div>
-    <p style="margin-top:var(--s4)" data-auf>
-      <a class="knopf" href="{pfad(tiefe)}projekte/"><span>Alle Projekte</span></a></p>
+    <div class="marke-zeile" data-auf style="margin-bottom:var(--s4)">
+      <h2>Was wir tun</h2><span>{len(themen)} Felder</span>
+    </div>
+    {"".join(reihen)}
   </section>""")
+
     aus.append(schlussband(tiefe))
     return "".join(aus)
 

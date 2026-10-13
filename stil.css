@@ -335,3 +335,97 @@ h2.kennung,.kennung{display:block;font-family:var(--satz);font-size:.75rem;lette
   letter-spacing:.1em;text-transform:uppercase;color:var(--gedaempft-hell);
   background:rgba(54,60,56,.88);backdrop-filter:blur(8px);border:1px solid var(--linie-dunkel);
   border-radius:var(--rund);padding:.42em .9em;text-decoration:none}
+
+/* ===========================================================================
+   STARTSEITE nach Vorbild exoape.com
+   — Aufmacher ohne dunklen Schleier, Vorspann klein darueber, Wortstapel gross
+   — Werkschau als versetzte Collage statt als Raster
+   — Seitenuebergang mit der View-Transitions-Schnittstelle: das angeklickte
+     Bild wandert auf die Projektseite mit. Reines CSS, keine Bibliothek.
+     Browser ohne Unterstuetzung (derzeit Firefox) springen normal um.
+   ========================================================================= */
+
+@view-transition{ navigation: auto }
+
+::view-transition-old(root),::view-transition-new(root){
+  animation-duration:.55s;animation-timing-function:var(--kurve)}
+::view-transition-old(root){animation-name:vt-weg}
+::view-transition-new(root){animation-name:vt-her}
+@keyframes vt-weg{ to{ opacity:0 } }
+@keyframes vt-her{ from{ opacity:0 } }
+/* Das mitwandernde Bild bekommt eine laengere, ruhigere Kurve. */
+::view-transition-group(*){ animation-duration:.72s }
+
+@media(prefers-reduced-motion:reduce){
+  @view-transition{ navigation: none }
+}
+
+/* --- Aufmacher der Startseite -------------------------------------------- */
+.start-hero{position:relative;min-height:100svh;display:flex;align-items:center;
+  overflow:hidden;padding-block:var(--s6) var(--s5)}
+.start-hero .hero__bild{position:absolute;inset:-8% 0;z-index:0}
+.start-hero .hero__bild img{width:100%;height:100%;object-fit:cover;object-position:50% 50%}
+/* Nur ein leichter Schleier — exoape laesst das Bild stehen. Der Text sitzt
+   deshalb auf einem eigenen, gemessenen Verlauf (siehe .start-hero__innen). */
+.start-hero__tuch{position:absolute;inset:0;z-index:1;
+  background:linear-gradient(to bottom,rgba(54,60,56,.34) 0%,rgba(54,60,56,.16) 38%,
+             rgba(54,60,56,.52) 78%,rgba(54,60,56,.78) 100%)}
+.start-hero__innen{position:relative;z-index:2;width:100%;isolation:isolate}
+.start-hero__innen::before{content:"";position:absolute;z-index:-1;pointer-events:none;
+  left:calc(-1*clamp(20px,4.5vw,56px));right:calc(-1*clamp(20px,4.5vw,56px));
+  top:-4rem;bottom:-4rem;
+  /* .80 ab 4rem: der kleine Vorspann sitzt genau hier und braucht 4,5:1 —
+     mit .62 waren es gemessene 3,80:1. */
+  background:linear-gradient(to bottom,transparent 0,rgba(54,60,56,.80) 4rem,
+             rgba(54,60,56,.80) 56%,rgba(54,60,56,.58) 100%)}
+.start-hero__vorspann{max-width:38ch;font-size:clamp(.9375rem,1.3vw,1.0625rem);
+  line-height:1.5;margin-bottom:var(--s4);color:var(--auf-dunkel)}
+.start-hero h1{font-family:var(--anzeige);font-weight:400;
+  font-size:clamp(3rem,13vw,11rem);line-height:.9;letter-spacing:-.025em}
+.start-hero h1 .z{display:block}
+.start-hero__nachweis{position:absolute;right:clamp(20px,4.5vw,56px);bottom:var(--s3);z-index:2;
+  font-family:var(--satz);font-size:.6875rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--gedaempft-hell)}
+
+/* --- Werkschau: versetzte Collage ---------------------------------------- */
+.werkschau{display:grid;grid-template-columns:repeat(12,1fr);
+  column-gap:clamp(12px,2vw,28px);padding-block:var(--s6)}
+.wp{grid-column:1/-1;margin-top:var(--s5);text-decoration:none;display:block;
+  position:relative}
+.wp:first-child{margin-top:0}
+@media(min-width:54rem){
+  /* Breiten und Einrueckungen bewusst ungleich — das ist der Exo-Ape-Griff. */
+  .wp--a{grid-column:1/7;  margin-top:0}
+  .wp--b{grid-column:8/13; margin-top:-16vh}
+  .wp--c{grid-column:4/10; margin-top:8vh}
+  .wp--d{grid-column:2/6;  margin-top:-4vh}
+  .wp--e{grid-column:7/13; margin-top:-8vh}
+  .wp--f{grid-column:3/8;  margin-top:6vh}
+}
+.wp__bild{overflow:hidden;position:relative;background:rgba(224,220,219,.06)}
+.wp--a .wp__bild{aspect-ratio:4/5}
+.wp--b .wp__bild{aspect-ratio:3/4}
+.wp--c .wp__bild{aspect-ratio:16/11}
+.wp--d .wp__bild{aspect-ratio:3/4}
+.wp--e .wp__bild{aspect-ratio:4/3}
+.wp--f .wp__bild{aspect-ratio:1/1}
+.wp__bild img{width:100%;height:100%;object-fit:cover;
+  transform:scale(1.06);transition:transform 1.1s var(--kurve)}
+.wp:hover .wp__bild img{transform:scale(1)}
+.wp__text{display:flex;flex-wrap:wrap;gap:.3rem var(--s2);align-items:baseline;
+  margin-top:var(--s2);padding-top:var(--s2);border-top:1px solid var(--linie-dunkel);
+  position:relative;overflow:hidden}
+.wp__text::after{content:"";position:absolute;left:0;top:0;height:1px;width:0;
+  background:var(--messing);transition:width .9s var(--kurve)}
+.wp:hover .wp__text::after{width:100%}
+.wp h3{font-size:clamp(1.25rem,2.4vw,1.875rem)}
+.wp__ort{font-family:var(--satz);font-size:.75rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--gedaempft-hell);margin-left:auto}
+
+/* Zeile, die beim Scrollen durchlaeuft — exoape setzt sie als Kapitelmarke */
+.marke-zeile{display:flex;align-items:baseline;gap:var(--s3);
+  padding-block:var(--s3);border-bottom:1px solid var(--linie-dunkel)}
+.marke-zeile h2{font-family:var(--satz);font-size:.75rem;letter-spacing:.2em;
+  text-transform:uppercase;font-weight:600;color:var(--messing)}
+.marke-zeile span{font-family:var(--satz);font-size:.75rem;color:var(--gedaempft-hell);
+  margin-left:auto;font-variant-numeric:tabular-nums}
