@@ -59,6 +59,51 @@ AUFMACHER_TITEL = {
     "leistungen": "Leistungen",
 }
 
+
+# ---------------------------------------------------------------------------
+# Bilder, die in der Aufnahme lagen, aber von der Auslese nicht erfasst wurden,
+# weil sie in Diaschauen oder Galerien steckten. Zuordnung nicht geraten,
+# sondern aus dem Rohmaterial belegt: nachgeschlagen, auf welcher Seite der
+# bestehenden Website sie standen (siehe _aufnahme/roh/).
+BASE = "https://www.bruecknerarchitekten.com/wp-content/uploads/"
+
+AUSZEICHNUNGEN = [   # standen auf /generalplanung/
+    (BASE + "2023/10/Badge-RGB_NOMINEE-150x150.jpg", "B!WRD — Der Projektentwicklerpreis des BFW, Nominee"),
+    (BASE + "2025/08/Deutscher-Award-fuer-Nachhaltigkeitsprojekte-2025-2-1-150x150.png", "Deutscher Award für Nachhaltigkeitsprojekte 2025"),
+    (BASE + "2025/08/GIA24_2-300x142.png", "German Innovation Award 2024, Gold"),
+    (BASE + "2025/08/IdJ_2024_Anerkennung_RGB_500px-150x150.png", "Immobilien des Jahres 2024, Anerkennung"),
+]
+
+ZUSATZBILDER = {
+    # Schluessel = Quelle in inhalt.json
+    "bauen-im-bestand": [
+        (BASE + "2024/01/GT2-1-2-768x432.jpg", ""),
+        (BASE + "2024/01/GT2_3-Photo-2-768x432.jpg", ""),
+        (BASE + "2024/01/GT2-4-768x432.jpg", ""),
+        (BASE + "2024/01/GT2-5-1-768x432.jpg", ""),
+    ],
+    "beitraege__denisstrasse-lichthofe": [
+        (BASE + "2025/08/Lichthoefe\u00a9BruecknerArchitekten01-scaled.jpeg", ""),
+        (BASE + "2025/01/DSC_8534-2-scaled.jpeg", ""),
+    ],
+    "beitraege__neubau-buerogebaeude-mit-parametrisch-entwickelter-fassade": [
+        (BASE + "2025/08/DSC_6837.jpg_klein-scaled.jpg", ""),
+        (BASE + "2025/08/DSC_6988-scaled.jpg", ""),
+    ],
+    "startseite": [
+        (BASE + "2025/08/FF12454_2023-05-15_FF12454_2023-05-09_DJI_0193-HDR-2.jpg", ""),
+    ],
+    "kontakt": [
+        (BASE + "2022/08/ARCHITECT-rezized_Brueckner_Architekten_web.webp", ""),
+    ],
+}
+
+# Zwei Portraetaufnahmen bleiben bewusst draussen:
+#   2022_05_12_Brückner_Architekten_Day416969_fi-nal.webp  und  Unknown.webp
+# Es sind frontale Portraets erkennbarer Personen. Ohne Namen laesst sich keine
+# sinnvolle Bildunterschrift setzen, und ein namenloses Gesicht ist schlechter
+# als keines. Dazu greift Blocker 3 der Liste offener Punkte (Einwilligung).
+
 OFFENE_BILDTEXTE = []
 UMBRUCH = re.compile(r"\n\s*\n")
 
@@ -146,6 +191,39 @@ def alle_bilder(bloecke):
         elif b["art"] == "hintergrund":
             aus += b["bilder"]
     return [u for u in dict.fromkeys(aus) if u in BILDER]
+
+def zusatz_galerie(quelle, tiefe, herkunft, marke="Weitere Ansichten"):
+    """Bilder aus ZUSATZBILDER als Raster anhaengen."""
+    bilder_ = ZUSATZBILDER.get(quelle)
+    if not bilder_:
+        return ""
+    karten = []
+    for u, alt in bilder_:
+        if u not in BILDER:
+            raise SystemExit("ABBRUCH: ZUSATZBILDER nennt ein Bild, das nicht gewandelt ist:\n  " + u)
+        karten.append('<div>' + rahmen(u, tiefe, alt,
+                      sizes="(min-width:44rem) 48vw, 100vw", herkunft=herkunft) + "</div>")
+    return ("""
+  <section class="bahn">
+    """ + kopfzeile(marke, str(len(karten)) + (" Bilder" if len(karten) != 1 else " Bild")) + """
+    <div class="raster">""" + "".join(karten) + """</div>
+  </section>""")
+
+def auszeichnungen_block(tiefe):
+    """Die vier Auszeichnungen. Standen auf der alten Seite unter Generalplanung;
+    auf einer Seite mit der Ueberschrift 'Darauf sind wir stolz' stehen sie besser."""
+    k = []
+    for u, bez in AUSZEICHNUNGEN:
+        if u not in BILDER:
+            raise SystemExit("ABBRUCH: Auszeichnung nicht gewandelt: " + u)
+        k.append('<figure class="auszeichnung" data-auf>'
+                 + bild(u, tiefe, bez, sizes="180px", herkunft="Auszeichnung")
+                 + "<figcaption>" + e(bez) + "</figcaption></figure>")
+    return ("""
+  <section class="bahn">
+    """ + kopfzeile("Auszeichnungen", str(len(k)) + " Stück") + """
+    <div class="auszeichnungen">""" + "".join(k) + """</div>
+  </section>""")
 
 def name_ort(titel):
     teile = [x.strip() for x in titel.split(",")]
@@ -408,6 +486,15 @@ def start_bauen(tiefe):
       <a class="knopf" href=\"""" + pfad(tiefe) + """projekte/"><span>Alle Projekte</span></a></p>
   </section>""")
 
+    # --- Vollbreites Band aus der Startseiten-Diaschau ---------------------
+    band = ZUSATZBILDER.get("startseite") or []
+    if band:
+        aus.append("""
+  <section style="padding:0">
+    <div class="rahmen" style="aspect-ratio:21/9">"""
+                   + bild(band[0][0], tiefe, "", sizes="100vw", nackt=True) + """</div>
+  </section>""")
+
     # --- Haltung, dunkel ---------------------------------------------------
     rest = UMBRUCH.split(haltung)
     satz = kuerzen(rest[1] if len(rest) > 1 else (rest[0] if rest else ""), 240)
@@ -508,6 +595,7 @@ def thema_bauen(quelle, ziel, titel, tiefe):
                    + bild(uebrig[0], tiefe, "", sizes="100vw", nackt=True) + """</div>
   </section>""")
 
+    aus.append(zusatz_galerie(quelle, tiefe, titel))
     aus.append(schlussband(tiefe))
     return "".join(aus)
 
@@ -536,6 +624,7 @@ def projekt_bauen(quelle, tiefe):
                                  + rahmen(u, tiefe, "", sizes="(min-width:70rem) 72vw, 100vw",
                                           herkunft=seite["titel"]) + "</div>")
     aus.append('<section class="bahn">' + "".join(inner) + "</section>")
+    aus.append(zusatz_galerie(quelle, tiefe, seite["titel"]))
     aus.append(schlussband(tiefe))
     return "".join(aus)
 
@@ -587,6 +676,9 @@ def einfach_bauen(quelle, titel, tiefe):
             inner.append('<div class="fliess" data-auf style="margin-top:var(--s3)">'
                          + absaetze(b["text"]) + "</div>")
     aus.append('<section class="bahn">' + "".join(inner) + "</section>")
+    if quelle == "beitraege__referenzen":
+        aus.append(auszeichnungen_block(tiefe))
+    aus.append(zusatz_galerie(quelle, tiefe, titel))
     aus.append(schlussband(tiefe))
     return "".join(aus)
 
@@ -609,7 +701,7 @@ def kontakt_bauen(tiefe):
         Calendly vorhanden, beides wird bewusst nicht übernommen.]</p>
     </div>
   </section>
-""" + schlussband(tiefe)
+""" + zusatz_galerie("kontakt", tiefe, "Brückner Architekten", marke="Im Büro") + schlussband(tiefe)
 
 # ------------------------------------------------------------------ Rechtstexte
 IMPRESSUM = """<h2>Angaben gemäß § 5 DDG</h2>

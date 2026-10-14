@@ -10,6 +10,17 @@ Erfindet nichts. Was nicht in der Aufnahme steht, steht auch hier nicht.
 import re, json, pathlib, html as H
 
 ROH = pathlib.Path("_aufnahme/roh")
+
+# Textbloecke, die wir nicht uebernehmen, mit Begruendung:
+AUSSCHLUSS = [
+    # Datenschutzhinweis zu einem Kontaktformular. Die neue Seite hat keines
+    # (erste Stufe GitHub, dort laeuft kein serverseitiger Code), der Hinweis
+    # waere also eine Behauptung ueber eine Verarbeitung, die nicht stattfindet.
+    "Wenn Sie uns eine Nachricht per Kontaktformular senden",
+]
+# Dieser Hinweis steht auf der alten Seite im geteilten Kontaktabschnitt und
+# erscheint dadurch auf vielen Seiten. Inhaltlich gehoert er auf die Kontaktseite.
+NUR_AUF_KONTAKT = "Schülerpraktika"
 ZIEL = pathlib.Path("inhalt.json")
 
 def saeubern(s):
@@ -35,10 +46,23 @@ BILD = re.compile(r'(?i)<img[^>]+(?:data-src|src)="([^"]+\.(?:jpe?g|png|webp))"[
 ALT  = re.compile(r'(?i)alt="([^"]*)"')
 EINSTELLUNG = re.compile(r'data-settings="([^"]*)"')
 
-def bloecke_aus(roh):
+def bloecke_aus(roh, seite_name=""):
     """Alle Inhaltstraeger in Dokumentreihenfolge: Widgets UND Abschnitts-
     hintergruende. Elementor legt Aufmacherbilder als Diaschau im data-settings
     ab — ohne die faende man auf der Startseite kein einziges Bild."""
+    # Nur den Inhaltsbereich lesen. Ohne diesen Schnitt landen Fusszeile,
+    # Newsletterformular und Markenliste (BRUECKNERINNEN, REON, PROPERTYMAX …)
+    # im Seitentext — gemessen auf allen 45 Seiten.
+    schnitt = roh.find("<footer")
+    if schnitt > 0:
+        roh = roh[:schnitt]
+    for anfang in ('data-elementor-type="single-post"', 'data-elementor-type="wp-post"',
+                   'data-elementor-type="wp-page"'):
+        i = roh.find(anfang)
+        if i > 0:
+            roh = roh[i:]
+            break
+
     marken = []
 
     for m in WIDGET.finditer(roh):
@@ -50,7 +74,10 @@ def bloecke_aus(roh):
             if t: marken.append((m.start(), {"art": "ueberschrift", "stufe": stufe, "text": t}))
         elif art in ("text-editor", "theme-post-content"):
             t = saeubern(inhalt)
-            if len(t) > 24: marken.append((m.start(), {"art": "text", "text": t}))
+            if len(t) <= 24: continue
+            if any(x in t for x in AUSSCHLUSS): continue
+            if NUR_AUF_KONTAKT in t and seite_name != "kontakt": continue
+            marken.append((m.start(), {"art": "text", "text": t}))
         elif art in ("image", "theme-post-featured-image"):
             b = BILD.search(inhalt)
             if b:
@@ -92,7 +119,7 @@ def main():
         roh = p.read_text()
         titel = (re.search(r"(?is)<title>(.*?)</title>", roh) or [None, ""])[1]
         besch = (re.search(r'(?is)<meta name="description" content="(.*?)"', roh) or [None, ""])[1]
-        b = bloecke_aus(roh)
+        b = bloecke_aus(roh, p.stem)
         seiten[p.stem] = {
             "titel": H.unescape(titel).replace(" - Brückner Architekten München", "")
                                       .replace(" - Brückner Architekten", "").strip(),
