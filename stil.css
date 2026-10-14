@@ -196,12 +196,19 @@ section{padding-block:var(--s6)}
 .wp{grid-column:1/-1;margin-top:var(--s5);display:block}
 .wp:first-child{margin-top:0}
 @media(min-width:56rem){
+  /* Versatz ueber margin-top, NICHT ueber transform: transform verschiebt nur
+     optisch, das Layout rechnet nicht damit — dann deckt ein Bild den Titel des
+     Nachbarn zu. Ausserdem teilen sich aufeinanderfolgende Projekte nie
+     dieselben Spalten, sonst kollidieren sie trotz margin-top. */
+  /* Versatz in vw, nicht in vh: an der Fensterhoehe haengend wuerde die Collage
+     auf einem hohen Bildschirm auseinanderfallen — gemessen ragte das zweite
+     Bild bei hohem Fenster bis in den Aufmacher hinein. */
   .wp--a{grid-column:1/7;  margin-top:0}
-  .wp--b{grid-column:8/13; transform:translateY(-14vh)}
-  .wp--c{grid-column:3/10; margin-top:-6vh}
-  .wp--d{grid-column:1/5;  transform:translateY(-8vh)}
-  .wp--e{grid-column:6/13; margin-top:-16vh}
-  .wp--f{grid-column:4/9;  transform:translateY(-4vh)}
+  .wp--b{grid-column:8/13; margin-top:-8vw}
+  .wp--c{grid-column:1/8;  margin-top:5vw}
+  .wp--d{grid-column:9/13; margin-top:-10vw}
+  .wp--e{grid-column:2/9;  margin-top:4vw}
+  .wp--f{grid-column:9/13; margin-top:-9vw}
 }
 .wp--a .rahmen{aspect-ratio:4/5}
 .wp--b .rahmen{aspect-ratio:3/4}
