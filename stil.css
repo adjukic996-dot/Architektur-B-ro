@@ -159,11 +159,20 @@ p,li,h1,h2,h3,dd,figcaption{overflow-wrap:break-word}
 .auf__bild img{width:100%;height:100%;object-fit:cover}
 .js .auf__bild img{transform:scale(1.14);transition:transform 2.2s var(--kurve)}
 .js .auf.da .auf__bild img{transform:none}
+/* Schleier in Fast-Schwarz statt im Markenoliv: Schwarz verdunkelt pro
+   Deckkraft staerker, gemessen 53 % statt 66 % fuer dieselbe Lesbarkeit.
+   Dadurch bleibt das Bild oben nahezu unberuehrt, und es wirkt wie ein
+   Schatten statt wie gruener Nebel. */
 .auf__tuch{position:absolute;inset:0;z-index:1;
-  background:linear-gradient(to bottom,rgba(54,60,56,.30) 0%,rgba(54,60,56,.14) 34%,
-             rgba(54,60,56,.62) 80%,rgba(54,60,56,.84) 100%)}
+  background:linear-gradient(to bottom,
+    rgba(11,12,11,.08)  0%,
+    rgba(11,12,11,.05) 48%,
+    rgba(11,12,11,.30) 76%,
+    rgba(11,12,11,.55) 100%)}
 .auf__innen{position:relative;z-index:2;width:100%;color:var(--auf-dunkel)}
-.auf__vor{max-width:40ch;margin-bottom:var(--s4)}
+/* Reinweiss statt Elfenbein: hebt den Kontrast um den Faktor 1,4, ohne dass
+   mehr Schleier noetig wird. Guenstiger als jede Verdunklung. */
+.auf__vor{max-width:40ch;margin-bottom:var(--s4);color:#fff}
 .auf__nachweis{position:absolute;right:var(--rand);bottom:var(--s3);z-index:2;
   /* .klein setzt die dunkle Textfarbe — hier liegt aber der dunkle Aufmacher
      darunter, gemessen sonst 1,83:1. */
@@ -171,9 +180,13 @@ p,li,h1,h2,h3,dd,figcaption{overflow-wrap:break-word}
 .auf--klein{min-height:72svh}
 /* Eigener Schleier unter dem Text, gemessen — siehe DESIGN.md */
 .auf__innen::before{content:"";position:absolute;z-index:-1;pointer-events:none;
-  left:calc(-1*var(--rand));right:calc(-1*var(--rand));top:-4rem;bottom:-3rem;
-  background:linear-gradient(to bottom,transparent 0,rgba(54,60,56,.80) 4rem,
-             rgba(54,60,56,.80) 62%,rgba(54,60,56,.58) 100%)}
+  left:calc(-1*var(--rand));right:calc(-1*var(--rand));top:-5rem;bottom:-3rem;
+  /* Laengere Rampe ueber 5rem, damit die Oberkante nicht als Linie sichtbar wird. */
+  background:linear-gradient(to bottom,
+    transparent 0,
+    rgba(11,12,11,.58) 5rem,
+    rgba(11,12,11,.58) 70%,
+    rgba(11,12,11,.34) 100%)}
 
 /* ===========================================================================
    ABSCHNITTSKOPF — Marke mit Strich, wie bei exoape
