@@ -47,6 +47,18 @@ WERKSCHAU = [
     "beitraege__shine-on-oberaudorf",
 ]
 
+# Kuerzere Ueberschrift NUR fuer den Aufmacher. Es sind die eigenen Worte des
+# Kunden, nur beschnitten — nichts hinzugedichtet. Der vollstaendige Titel bleibt
+# im <title>, in der og:title und als Abschnittsueberschrift im Text stehen.
+# Grund: vierzeilige Titel treiben den Textblock so hoch, dass der Bildschleier
+# bis auf 13 % der Bildhoehe reicht (gemessen).
+AUFMACHER_TITEL = {
+    # voll: "Nachhaltig in die Zukunft. ESG. Eine Antwort auf viele Fragen."
+    "esg": "Nachhaltig\nin die Zukunft.",
+    # voll: "Brückner Architekten Leistungen" — der Name steht schon im Kopf
+    "leistungen": "Leistungen",
+}
+
 OFFENE_BILDTEXTE = []
 UMBRUCH = re.compile(r"\n\s*\n")
 
@@ -439,14 +451,15 @@ def thema_bauen(quelle, ziel, titel, tiefe):
             n += 1
             nummern[n] = i
     h1 = next((b["text"] for b in bl if b["art"] == "ueberschrift" and b["stufe"] == 1), titel)
-    aufm = erstes_bild(bl)
-    aus = [aufmacher(h1, kuerzen(seite.get("beschreibung", ""), 108), aufm, tiefe, klein=True)]
+    aus = [aufmacher(AUFMACHER_TITEL.get(quelle, h1),
+                     kuerzen(seite.get("beschreibung", ""), 108),
+                     erstes_bild(bl), tiefe, klein=True)]
 
     spur = "\n".join('        <li><a href="#kapitel-' + str(i + 1) + '"><b>'
                      + ("%02d" % (i + 1)) + "</b><span>" + e(k["titel"]) + "</span></a></li>"
                      for i, k in enumerate(kap))
 
-    benutzt = {aufm}
+    benutzt = {erstes_bild(bl)}
     teile = []
     for i, k in enumerate(kap):
         inner = []
