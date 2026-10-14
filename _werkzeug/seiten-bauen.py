@@ -363,7 +363,7 @@ def start_bauen(tiefe):
     s = INHALT["startseite"]; bl = s["bloecke"]
     aufm = erstes_bild(bl)
     haltung = next((b["text"] for b in bl if b["art"] == "text" and len(b["text"]) > 200), "")
-    vorspann = kuerzen(UMBRUCH.split(haltung)[0] if haltung else "", 185)
+    vorspann = kuerzen(UMBRUCH.split(haltung)[0] if haltung else "", 108)
 
     aus = [aufmacher("Sehnsuchtsorte\nschaffen.", vorspann, aufm, tiefe)]
 
@@ -440,7 +440,7 @@ def thema_bauen(quelle, ziel, titel, tiefe):
             nummern[n] = i
     h1 = next((b["text"] for b in bl if b["art"] == "ueberschrift" and b["stufe"] == 1), titel)
     aufm = erstes_bild(bl)
-    aus = [aufmacher(h1, kuerzen(seite.get("beschreibung", ""), 180), aufm, tiefe, klein=True)]
+    aus = [aufmacher(h1, kuerzen(seite.get("beschreibung", ""), 108), aufm, tiefe, klein=True)]
 
     spur = "\n".join('        <li><a href="#kapitel-' + str(i + 1) + '"><b>'
                      + ("%02d" % (i + 1)) + "</b><span>" + e(k["titel"]) + "</span></a></li>"
@@ -503,7 +503,7 @@ def projekt_bauen(quelle, tiefe):
     h1 = next((b["text"] for b in bl if b["art"] == "ueberschrift"), seite["titel"])
     aufm = erstes_bild(bl)
     vt = uebergang(quelle.replace("beitraege__", ""))
-    aus = [aufmacher(h1, kuerzen(seite.get("beschreibung", ""), 170), aufm, tiefe,
+    aus = [aufmacher(h1, kuerzen(seite.get("beschreibung", ""), 108), aufm, tiefe,
                      klein=True, vt=vt)]
     inner, gesehen = [], {aufm}
     for b in bl:
@@ -564,7 +564,7 @@ def einfach_bauen(quelle, titel, tiefe):
     seite = INHALT[quelle]; bl = seite["bloecke"]
     h1 = next((b["text"] for b in bl if b["art"] == "ueberschrift" and b["stufe"] == 1), titel)
     aufm = erstes_bild(bl)
-    aus = [aufmacher(h1, kuerzen(seite.get("beschreibung", ""), 170), aufm, tiefe, klein=True)]
+    aus = [aufmacher(h1, kuerzen(seite.get("beschreibung", ""), 108), aufm, tiefe, klein=True)]
     inner = []
     for b in bl:
         if b["art"] == "ueberschrift" and b["text"] != h1:
